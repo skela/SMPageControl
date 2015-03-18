@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
+using CoreGraphics;
 
-using MonoTouch.UIKit;
-using MonoTouch.CoreGraphics;
-using MonoTouch.Foundation;
+using UIKit;
+using CoreGraphics;
+using Foundation;
 
 namespace SMPageControlLib
 {
@@ -44,8 +44,8 @@ namespace SMPageControlLib
 		// Private
 
 		int			displayedPage;
-		float				measuredIndicatorWidth;
-		float				measuredIndicatorHeight;
+		nfloat				measuredIndicatorWidth;
+		nfloat				measuredIndicatorHeight;
 		CGImage			pageImageMask;
 
 		Dictionary<NSNumber,String> pageNames;
@@ -100,7 +100,7 @@ namespace SMPageControlLib
 		}
 
 		[Export("initWithFrame:")]
-		public SMPageControl (RectangleF rect) : base(rect)		
+		public SMPageControl (CGRect rect) : base(rect)		
 		{
 			Initialize();
 		}
@@ -110,7 +110,7 @@ namespace SMPageControlLib
 			Initialize();
 		}
 
-		public override void Draw (RectangleF rect)
+		public override void Draw (CGRect rect)
 		{
 			base.Draw (rect);
 			CGContext context = UIGraphics.GetCurrentContext ();
@@ -137,26 +137,26 @@ namespace SMPageControlLib
 			return null;
 		}
 
-		private float Floor(float val)
+		private nfloat Floor(nfloat val)
 		{
-			return (float)Math.Floor (val);
+			return (nfloat)Math.Floor (val);
 		}
 
-		public void RenderPages(CGContext context,RectangleF rect)
+		public void RenderPages(CGContext context,CGRect rect)
 		{
 			if (numberOfPages < 2 && HidesForSinglePage) 
 			{
 				return;
 			}
 
-			float left = LeftOffset;
+			nfloat left = LeftOffset;
 
-			float xOffset = left;
-			float yOffset = 0.0f;
+			nfloat xOffset = left;
+			nfloat yOffset = 0.0f;
 			UIColor fillColor = null;
 			UIImage image = null;
 			CGImage maskingImage = null;
-			SizeF maskSize = new SizeF();
+			CGSize maskSize = new CGSize();
 
 			for (uint i = 0; i < numberOfPages; i++) 
 			{
@@ -203,21 +203,21 @@ namespace SMPageControlLib
 				if (image!=null) 
 				{
 					yOffset = TopOffsetForHeight(image.Size.Height,rect);
-					float centeredXOffset = xOffset + Floor((measuredIndicatorWidth - image.Size.Width) / 2.0f);
-					image.Draw(new PointF(centeredXOffset, yOffset));
+					var centeredXOffset = xOffset + Floor((measuredIndicatorWidth - image.Size.Width) / 2.0f);
+					image.Draw(new CGPoint(centeredXOffset, yOffset));
 				} 
 				else if (maskingImage!=null) 
 				{
 					yOffset = TopOffsetForHeight(maskSize.Height,rect);
-					float centeredXOffset = xOffset + Floor((measuredIndicatorWidth - maskSize.Width) / 2.0f);
-					RectangleF imageRect = new RectangleF(centeredXOffset,yOffset,maskSize.Width,maskSize.Height);
+					var centeredXOffset = xOffset + Floor((measuredIndicatorWidth - maskSize.Width) / 2.0f);
+					CGRect imageRect = new CGRect(centeredXOffset,yOffset,maskSize.Width,maskSize.Height);
 					context.DrawImage(imageRect,maskingImage);
 				} 
 				else 
 				{
 					yOffset = TopOffsetForHeight(indicatorDiameter,rect);
-					float centeredXOffset = xOffset + Floor((measuredIndicatorWidth - indicatorDiameter) / 2.0f);
-					context.FillEllipseInRect(new RectangleF(centeredXOffset,yOffset,indicatorDiameter,indicatorDiameter));
+					var centeredXOffset = xOffset + Floor((measuredIndicatorWidth - indicatorDiameter) / 2.0f);
+					context.FillEllipseInRect(new CGRect(centeredXOffset,yOffset,indicatorDiameter,indicatorDiameter));
 				}
 
 				maskingImage = null;
@@ -226,34 +226,34 @@ namespace SMPageControlLib
 
 		}
 
-		private float CGRectGetMaxX(RectangleF r)
+		private nfloat CGRectGetMaxX(CGRect r)
 		{
 			return r.X + r.Width;
 		}
 
-		private float CGRectGetMidX(RectangleF r)
+		private nfloat CGRectGetMidX(CGRect r)
 		{
 			return r.X + (r.Width/2.0f);
 		}
 
-		private float CGRectGetMidY(RectangleF r)
+		private nfloat CGRectGetMidY(CGRect r)
 		{
 			return r.Y + (r.Height / 2.0f);
 		}
 
-		private float CGRectGetMaxY(RectangleF r)
+		private nfloat CGRectGetMaxY(CGRect r)
 		{
 			return r.Y + r.Height;
 		}
 
-		private float LeftOffset
+		private nfloat LeftOffset
 		{
 			get
 			{
-				RectangleF rect = Bounds;
-				SizeF size = SizeForNumberOfPages(numberOfPages);					
+				CGRect rect = Bounds;
+				CGSize size = SizeForNumberOfPages(numberOfPages);					
 
-				float left = 0.0f;
+				nfloat left = 0.0f;
 				switch (alignment) 
 				{
 					case SMPageControlAlignment.Center: left = CGRectGetMidX(rect) - (size.Width / 2.0f); break;
@@ -265,9 +265,9 @@ namespace SMPageControlLib
 			}
 		}
 
-		private float TopOffsetForHeight(float height,RectangleF rect)
+		private nfloat TopOffsetForHeight(nfloat height,CGRect rect)
 		{
-			float top = 0.0f;
+			nfloat top = 0.0f;
 			switch (verticalAlignment) 
 			{
 				case SMPageControlVerticalAlignment.Middle: top = CGRectGetMidY(rect) - (height / 2.0f); break;
@@ -308,24 +308,24 @@ namespace SMPageControlLib
 			SetNeedsDisplay();
 		}
 
-		public RectangleF RectForPageIndicator(int pageIndex)
+		public CGRect RectForPageIndicator(int pageIndex)
 		{
 			if (pageIndex < 0 || pageIndex >= numberOfPages) 
 			{
-				return new RectangleF();
+				return new CGRect();
 			}
 
-			float left = LeftOffset;
-			SizeF size = SizeForNumberOfPages(pageIndex + 1);
-			RectangleF rect = new RectangleF(left + size.Width - measuredIndicatorWidth,0,measuredIndicatorWidth,measuredIndicatorWidth);
+			var left = LeftOffset;
+			CGSize size = SizeForNumberOfPages(pageIndex + 1);
+			CGRect rect = new CGRect(left + size.Width - measuredIndicatorWidth,0,measuredIndicatorWidth,measuredIndicatorWidth);
 			return rect;
 		}
 
-		public SizeF SizeForNumberOfPages(int pageCount)
+		public CGSize SizeForNumberOfPages(int pageCount)
 		{
-			float marginSpace = Math.Max(0,pageCount-1) * indicatorMargin;
-			float indicatorSpace = pageCount * measuredIndicatorWidth;
-			SizeF size = new SizeF(marginSpace + indicatorSpace, measuredIndicatorHeight);
+			var marginSpace = Math.Max(0,pageCount-1) * indicatorMargin;
+			var indicatorSpace = pageCount * measuredIndicatorWidth;
+			CGSize size = new CGSize(marginSpace + indicatorSpace, measuredIndicatorHeight);
 			return size;
 		}
 
@@ -421,9 +421,9 @@ namespace SMPageControlLib
 
 		public override void SizeToFit()
 		{
-			RectangleF frame = Frame;
-			SizeF size = SizeForNumberOfPages(numberOfPages);
-			size.Height = Math.Max(size.Height,MIN_HEIGHT);
+			CGRect frame = Frame;
+			CGSize size = SizeForNumberOfPages(numberOfPages);
+			size.Height = (nfloat)Math.Max(size.Height,MIN_HEIGHT);
 			frame.Size = size;
 			Frame = frame;
 		}
@@ -436,7 +436,7 @@ namespace SMPageControlLib
 
 		public void SetScrollViewContentOffsetForCurrentPage(UIScrollView scrollView,bool animated)
 		{
-			PointF offset = scrollView.ContentOffset;
+			CGPoint offset = scrollView.ContentOffset;
 			offset.X = scrollView.Bounds.Width * currentPage;
 			scrollView.SetContentOffset (offset, animated);
 		}
@@ -449,17 +449,17 @@ namespace SMPageControlLib
 			CGBitmapContext context = new CGBitmapContext(null,pixelsWide,pixelsHigh,image.CGImage.BitsPerComponent,bitmapBytesPerRow,null,CGImageAlphaInfo.Only);
 			context.TranslateCTM(0.0f, pixelsHigh);
 			context.ScaleCTM(1.0f, -1.0f);
-			context.DrawImage(new RectangleF(0, 0, pixelsWide, pixelsHigh),image.CGImage);
+			context.DrawImage(new CGRect(0, 0, pixelsWide, pixelsHigh),image.CGImage);
 			CGImage maskImage = context.ToImage ();
 			//CGImage maskImage = CGBitmapContextCreateImage(context);
 			//CGContextRelease(context);
 			return maskImage;
 		}
 
-		private void UpdateMeasuredIndicatorSizeWithSize(SizeF size)
+		private void UpdateMeasuredIndicatorSizeWithSize(CGSize size)
 		{
-			measuredIndicatorWidth = Math.Max(measuredIndicatorWidth, size.Width);
-			measuredIndicatorHeight = Math.Max(measuredIndicatorHeight, size.Height);
+			measuredIndicatorWidth = (nfloat)Math.Max(measuredIndicatorWidth, size.Width);
+			measuredIndicatorHeight = (nfloat)Math.Max(measuredIndicatorHeight, size.Height);
 		}
 
 		private void UpdateMeasuredIndicatorSizes()
@@ -498,10 +498,10 @@ namespace SMPageControlLib
 		public override void TouchesEnded(NSSet touches,UIEvent anEvent)
 		{
 			UITouch touch = touches.AnyObject as UITouch;
-			PointF point = touch.LocationInView(this);
-			SizeF size = SizeForNumberOfPages(numberOfPages);
-			float left = LeftOffset;
-			float middle = left + (size.Width / 2.0f);
+			CGPoint point = touch.LocationInView(this);
+			CGSize size = SizeForNumberOfPages(numberOfPages);
+			var left = LeftOffset;
+			var middle = left + (size.Width / 2.0f);
 			if (point.X < middle) 
 			{
 				SetCurrentPage (currentPage-1, sendEvent: true, canDefer: true);
@@ -514,7 +514,7 @@ namespace SMPageControlLib
 
 		#endregion
 
-		public override RectangleF Frame
+		public override CGRect Frame
 		{
 			set
 			{
